@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'Phome.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class plogin extends StatefulWidget {
   @override
@@ -22,12 +23,9 @@ class _ploginState extends State<plogin> {
     http.Response response;
     response = await http.get(UrlLogin);
     Map<String, dynamic> retorno = json.decode(response.body);
-    //variaveis recebendo resultado da api login sintese
     String Resposta = retorno["Resposta"];
-    //Controler recebendo dados da api login sintese
     _ControlerSenha.text = Resposta;
     _ControlerCpf.text = Resposta;
-
     if ((_ControlerCpf.text == "Error") || (_ControlerCpf.text == "Error")) {
       Widget okButton = FlatButton(
         child: Text("OK"),
@@ -60,12 +58,14 @@ class _ploginState extends State<plogin> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (BuildContext context) => phome(CpfDigitado)));
+                  builder: (BuildContext context) => phome(
+                        CpfDigitado,
+                      )));
         },
       );
       AlertDialog alerta = AlertDialog(
-        title: Text("Alerta"),
-        content: Text("Vc é: ${_ControlerCpf.text}"),
+        title: Text("Olá"),
+        content: Text("Bem Vindo: ${_ControlerCpf.text}"),
         actions: [
           simButton,
           NaoButton,
@@ -79,12 +79,7 @@ class _ploginState extends State<plogin> {
       _ControlerCpf.text = "";
       _ControlerSenha.text = "";
     }
-    //setState(() {
-    //_ControlerSenha;
-    //_ControlerCpf;
-    //});
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +111,7 @@ class _ploginState extends State<plogin> {
                         contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
                         hintText: "Digite apenas os números do cpf",
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(32))),
+                            borderRadius: BorderRadius.circular(10))),
                   ),
                 ),
                 TextField(
@@ -128,7 +123,7 @@ class _ploginState extends State<plogin> {
                       contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
                       hintText: "Digite sua senha",
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(32))),
+                          borderRadius: BorderRadius.circular(10))),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 16, bottom: 20),
@@ -140,11 +135,10 @@ class _ploginState extends State<plogin> {
                       color: Colors.red,
                       padding: EdgeInsets.fromLTRB(32, 16, 32, 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32)),
+                          borderRadius: BorderRadius.circular(10)),
                       onPressed: () {
                         if ((_ControlerCpf.text == "") ||
                             (_ControlerSenha.text == "")) {
-                          //configurando button
                           Widget okButton = FlatButton(
                             child: Text("OK"),
                             onPressed: () {
@@ -152,8 +146,8 @@ class _ploginState extends State<plogin> {
                             },
                           );
                           AlertDialog alerta = AlertDialog(
-                            title: Text("Alerta!"),
-                            content: Text("Campos não podem está vazio"),
+                            title: Text("Atenção!"),
+                            content: Text("Cpf/Senha vazio"),
                             actions: [okButton],
                           );
                           showDialog(
@@ -172,7 +166,9 @@ class _ploginState extends State<plogin> {
                       "Click aqui para ir ao nosso website!",
                       style: TextStyle(color: Colors.red),
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      abrirUrl();
+                    },
                   ),
                 ),
               ],
@@ -181,5 +177,13 @@ class _ploginState extends State<plogin> {
         ),
       ),
     );
+  }
+  abrirUrl() async {
+    const url = 'https://flutterando.com.br/';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }
