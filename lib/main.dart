@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loguinsintese_app/plogin.dart';
 
-
-
-
 void main (){
   runApp(MaterialApp(
     home: plogin(),

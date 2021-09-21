@@ -1,4 +1,4 @@
-class filiado {
+class Post {
   String nome;
   String pai;
   String mae;
@@ -18,7 +18,7 @@ class filiado {
   String telefone;
   List<Filiacao> filiacao;
 
-  filiado(
+  Post(
       {this.nome,
         this.pai,
         this.mae,
@@ -38,7 +38,7 @@ class filiado {
         this.telefone,
         this.filiacao});
 
-  filiado.fromJson(Map<String, dynamic> json) {
+  Post.fromJson(Map<String, dynamic> json) {
     nome = json['Nome'];
     pai = json['Pai'];
     mae = json['Mae'];

@@ -6,17 +6,15 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'Phome.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 class plogin extends StatefulWidget {
   @override
   _ploginState createState() => _ploginState();
 }
-
 class _ploginState extends State<plogin> {
   final _ControlerCpf = TextEditingController();
   final _ControlerSenha = TextEditingController();
-  _conexaologin() async {
-    String CpfDigitado = _ControlerCpf.text;
+  Future _conexaologin() async {
+    var CpfDigitado = _ControlerCpf.text;
     String SenhaDigitada = _ControlerSenha.text;
     String UrlLogin =
         "https://sgs.sintese.org.br/sintese/WebLoginUser.rule?sys=SIF&pLogin=${CpfDigitado};${SenhaDigitada}";
@@ -24,9 +22,8 @@ class _ploginState extends State<plogin> {
     response = await http.get(UrlLogin);
     Map<String, dynamic> retorno = json.decode(response.body);
     String Resposta = retorno["Resposta"];
-    _ControlerSenha.text = Resposta;
     _ControlerCpf.text = Resposta;
-    if ((_ControlerCpf.text == "Error") || (_ControlerCpf.text == "Error")) {
+    if (_ControlerCpf.text == "Error") {
       Widget okButton = FlatButton(
         child: Text("OK"),
         onPressed: () {
@@ -46,14 +43,8 @@ class _ploginState extends State<plogin> {
       _ControlerCpf.text = "";
       _ControlerSenha.text = "";
     } else {
-      Widget NaoButton = FlatButton(
-        child: Text("Não"),
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      );
-      Widget simButton = FlatButton(
-        child: Text("Sim"),
+      Widget okButton = FlatButton(
+        child: Text("Ok"),
         onPressed: () {
           Navigator.push(
               context,
@@ -67,8 +58,7 @@ class _ploginState extends State<plogin> {
         title: Text("Olá"),
         content: Text("Bem Vindo: ${_ControlerCpf.text}"),
         actions: [
-          simButton,
-          NaoButton,
+          okButton,
         ],
       );
       showDialog(
@@ -80,12 +70,11 @@ class _ploginState extends State<plogin> {
       _ControlerSenha.text = "";
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(10),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
@@ -164,7 +153,7 @@ class _ploginState extends State<plogin> {
                   child: GestureDetector(
                     child: Text(
                       "Click aqui para ir ao nosso website!",
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: Colors.red, fontSize: 18),
                     ),
                     onTap: () {
                       abrirUrl();
@@ -179,7 +168,7 @@ class _ploginState extends State<plogin> {
     );
   }
   abrirUrl() async {
-    const url = 'https://flutterando.com.br/';
+    const url = 'https://www.sintese.org.br';
     if (await canLaunch(url)) {
       await launch(url);
     } else {

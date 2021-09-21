@@ -1,55 +1,90 @@
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:loguinsintese_app/plogin.dart';
 import 'dart:convert';
-import 'package:loguinsintese_app/postCarteirinha.dar.dart';
+import 'dart:async';
+import 'package:loguinsintese_app/post.dart';
+import 'package:loguinsintese_app/postfiliacao.dart';
 
 import 'Phome.dart';
 import 'alteracaodesenha.dart';
-import 'empresa.dart';
-import 'plogin.dart';
+import 'carteiraDigital.dart';
 
-class carteiraDigital extends StatefulWidget {
-  @override
+class Empresa extends StatefulWidget {
   String CpfDigitado;
-  String urlCarteiraDigitalAT;
-  carteiraDigital(this.CpfDigitado);
-  _carteiraDigitalState createState() => _carteiraDigitalState();
+  Empresa(this.CpfDigitado);
+  @override
+  _HomeState createState() => _HomeState();
 }
-class _carteiraDigitalState extends State<carteiraDigital> {
 
-  Future<carteirinha> getCarteirinha() async{
-    final response = await http.get("https://sgs.sintese.org.br/sintese/WebCarteira.rule?sys=SIF&pCPF=${widget.CpfDigitado}");
-    if(response.statusCode == 200){
-      return carteirinha.fromJson(json.decode(response.body));
-    }else{
-      throw Exception('Falha na conexão com o servidor');
+class _HomeState extends State<Empresa> {
+  String _urlBase =
+      "https://sgs.sintese.org.br/sintese/WebConsultarCPF.rule?sys=SIF&pCPF=";
+
+  Future<List<Pegar>> _recuperarPostagens() async {
+    http.Response response = await http.get(_urlBase + widget.CpfDigitado);
+    var dadosJson = json.decode(response.body);
+
+    List<Pegar> postagens = List();
+    for (var po in dadosJson) {
+      print("post: " + po["title"]);
+      Pegar p = Pegar(
+        po["_empresa"],
+        po["_predio"],
+        po["_matricula"],
+        po["_telefone"],
+        po["_profissao"],
+        po["_funcao"],
+        po["_cargo"],
+        po["_regiao"],
+        po["_lotacao"],
+        po["_sindicalizacao"],
+        po["_situacao"],
+      );
+      postagens.add(p);
     }
+    return postagens;
+    //print( postagens.toString() );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text ("Carteira Digital"),
+        title: Text("Filiações"),
       ),
-      body: Center(
-        child: Container(
-          //padding: EdgeInsets.all(10),
-          child: SingleChildScrollView(
-            child: FutureBuilder<carteirinha>(
-              future: getCarteirinha(),
-                builder: (context, snapshot){
-                  if(snapshot.hasData){
-                    return Center(child: Image.network(snapshot.data.uRL));
-                  }else if(snapshot.hasError){
-                    return Text("${snapshot.error}");
-                  }
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-            ),
-          ),
-        ),
+      body: FutureBuilder<List<Pegar>>(
+        future: _recuperarPostagens(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+              break;
+            case ConnectionState.active:
+            case ConnectionState.done:
+              if (snapshot.hasError) {
+                print("lista: Erro ao carregar ");
+              } else {
+                print("lista: carregou!! ");
+                return ListView.builder(
+                    itemCount: snapshot.data.length,
+                    itemBuilder: (context, index) {
+                      List<Pegar> lista = snapshot.data;
+                      Pegar post = lista[index];
+
+                      return ListTile(
+                        title: Text(post.empresa),
+                        subtitle: Text(post.cargo),
+                      );
+                    });
+              }
+              break;
+          }
+          return Center();
+        },
       ),
       drawer: Drawer(
         child: ListView(
@@ -58,14 +93,20 @@ class _carteiraDigitalState extends State<carteiraDigital> {
                 decoration: BoxDecoration(color: Colors.red),
                 margin: EdgeInsets.zero,
                 padding: EdgeInsets.zero,
-                child: Stack(children: <Widget>[
-                  Positioned(
-                      bottom: 12.0,
-                      left: 16.0,
-                      child: Text("Menu", style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.w500 ),)
-                  )
-                ],)
-            ),
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                        bottom: 12.0,
+                        left: 16.0,
+                        child: Text(
+                          "Menu",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w500),
+                        ))
+                  ],
+                )),
             ListTile(
               trailing: Icon(Icons.arrow_forward),
               leading: Icon(Icons.person),
@@ -153,6 +194,6 @@ class _carteiraDigitalState extends State<carteiraDigital> {
           ],
         ),
       ),
-  );
- }
+    );
+  }
 }
