@@ -1,57 +1,91 @@
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:loguinsintese_app/postCarteirinha.dar.dart';
-
+import 'dart:async';
+import 'package:loguinsintese_app/PostFiliacoes.dart';
+import 'package:loguinsintese_app/plogin.dart';
 import 'Pcontribuicaoanual.dart';
-import 'Pconveniados.dart';
-import 'Phome.dart';
-import 'alteracaodesenha.dart';
 import 'Pfiliacoes.dart';
-import 'plogin.dart';
+import 'Phome.dart';
+import 'Plistadeconvenio.dart';
+import 'PostConvenios.dart';
+import 'alteracaodesenha.dart';
+import 'carteiraDigital.dart';
 
-class carteiraDigital extends StatefulWidget {
+class pconveniados extends StatefulWidget {
+  var CpfDigitado;
+  pconveniados(this.CpfDigitado);
   @override
-  String CpfDigitado;
-  String urlCarteiraDigitalAT;
-  carteiraDigital(this.CpfDigitado);
-  _carteiraDigitalState createState() => _carteiraDigitalState();
+  _pconveniadosState createState() => _pconveniadosState();
 }
 
-class _carteiraDigitalState extends State<carteiraDigital> {
-  Future<carteirinha> getCarteirinha() async {
-    final response = await http.get(
-        "https://sgs.sintese.org.br/sintese/WebCarteira.rule?sys=SIF&pCPF=${widget.CpfDigitado}");
-    if (response.statusCode == 200) {
-      return carteirinha.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Falha na conexão com o servidor');
+class _pconveniadosState extends State<pconveniados> {
+  String _urlBase =
+      "https://sgs.sintese.org.br/sintese/WebConsultarConvenios.rule?sys=SIF";
+  Future<List<convenios>> _recuperarConvenios() async {
+    http.Response response = await http.get(_urlBase);
+    var dadosJson = json.decode(response.body);
+
+    List<convenios> postagens = List();
+    for (var post in dadosJson) {
+      print("post: " + post["Convenio"]);
+      convenios p = convenios(
+        post["postId"],
+        post["Convenio"],
+      );
+      postagens.add(p);
     }
+    return postagens;
+    print(postagens.toString());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Carteira Digital"),
+        title: Text("Convenios"),
       ),
       body: Center(
-        child: Container(
-          //padding: EdgeInsets.all(10),
-          child: SingleChildScrollView(
-            child: FutureBuilder<carteirinha>(
-                future: getCarteirinha(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Center(child: Image.network(snapshot.data.uRL));
-                  } else if (snapshot.hasError) {
-                    return Text("${snapshot.error}");
-                  }
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }),
-          ),
+        child: FutureBuilder<List<convenios>>(
+          future: _recuperarConvenios(),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+                break;
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if (snapshot.hasError) {
+                  print("lista: Erro ao carregar ");
+                } else {
+                  print("lista: carregou!! ");
+                  return ListView.builder(
+                      itemCount: snapshot.data.length,
+                      itemBuilder: (context, index) {
+                        List<convenios> lista = snapshot.data;
+                        convenios post = lista[index];
+                        return ListTile(
+                          leading: Icon(Icons.accessibility),
+                          title: Text(post.Convenio),
+                          subtitle: Text("Categoria"),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        plistadeconvenios()));
+                          },
+                          trailing: Icon(Icons.arrow_forward),
+                        );
+                      });
+                }
+                break;
+            }
+            return Center();
+          },
         ),
       ),
       drawer: Drawer(
